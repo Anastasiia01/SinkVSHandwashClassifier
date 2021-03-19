@@ -3,15 +3,16 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from tqdm import tqdm
-#from tqdm.notebook import tqdm
+#from tqdm import tqdm
+from tqdm.notebook import tqdm
 from sklearn.metrics import classification_report, confusion_matrix
 
 from Utils import Utils
 from models.CNN import CNNClassifier
 
 def main():
-    dataroot = "C:/Users/anast/Documents/_Spring_2021/Senior_Project/dataset/"
+    dataroot = "/content/drive/MyDrive/dataset/"
+    #dataroot = "C:/Users/anast/Documents/_Spring_2021/Senior_Project/dataset/"
     #--------------prepare data------------------------
     accuracy_stats = {
     'train': [],
@@ -51,7 +52,7 @@ def main():
             optimizer.step()
             train_epoch_loss += train_loss.item()
             train_epoch_acc += train_acc.item()
-            print("one batch down...")
+            #print("one batch down...")
         # VALIDATION
         """with torch.no_grad():
             model.eval()
@@ -83,6 +84,8 @@ def main():
             x_batch, y_batch = x_batch.to(device), y_batch.to(device)
             y_test_pred = model(x_batch)
             _, y_pred_tag = torch.max(y_test_pred, dim = 1)
+            y_test_pred = y_test_pred.squeeze()
+            #y_test_pred = torch.unsqueeze(y_test_pred, 0)
 
             test_acc = binary_acc(y_test_pred, y_batch)
             test_loss = criterion(y_test_pred, y_batch)
@@ -97,8 +100,8 @@ def main():
     y_pred_list = [i[0][0][0] for i in y_pred_list]
     y_true_list = [i[0] for i in y_true_list]
 
-    print(classification_report(y_true_list, y_pred_list))
-    print(confusion_matrix(y_true_list, y_pred_list))
+    #print(classification_report(y_true_list, y_pred_list))
+    #print(confusion_matrix(y_true_list, y_pred_list))
 
 
 
