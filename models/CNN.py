@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F 
+import torch.optim as optim
 #from tqdm import tqdm
 from tqdm.notebook import tqdm
 import os
+import time
 
 class CNNClassifier(nn.Module):
 
@@ -14,9 +16,9 @@ class CNNClassifier(nn.Module):
         self.block3 = self.conv_block(c_in=128, c_out=64, dropout=0.1, kernel_size=3, stride=1, padding=1)
         self.lastcnn = nn.Conv2d(in_channels=64, out_channels=2, kernel_size=56, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = device
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(model.parameters(), lr=0.008)
+        self.optimizer = optim.Adam(self.parameters(), lr=0.008)
 
     def forward(self, x):
         x = self.block1(x)
@@ -36,17 +38,17 @@ class CNNClassifier(nn.Module):
         )
         return seq_block
 
-    def train(self, trainloader):
+    def trainCNN(self, train_loader):
         print("Begin training...")
         self.t_begin = time.time()
         for e in tqdm(range(1, 21)):
             train_epoch_loss = 0
             train_epoch_acc = 0
-            this.train()
+            self.train()
             for X_train_batch, y_train_batch in train_loader:            
-                X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
+                X_train_batch, y_train_batch = X_train_batch.to(self.device), y_train_batch.to(self.device)
                 optimizer.zero_grad()
-                y_train_pred = model(X_train_batch).squeeze() # returns a tensor with all the dimensions of input of size 1 removed.
+                y_train_pred = self(X_train_batch).squeeze() # returns a tensor with all the dimensions of input of size 1 removed.
                 train_loss = criterion(y_train_pred, y_train_batch)
                 train_acc = binary_acc(y_train_pred, y_train_batch)
                 train_loss.backward()
@@ -62,21 +64,21 @@ class CNNClassifier(nn.Module):
     def evaluate(self, test_loader, best_acc=0): 
         print("Begin testing...")
         with torch.no_grad():
-        this.eval()
-        test_epoch_loss = 0
-        test_epoch_acc = 0
+            self.eval()
+            test_epoch_loss = 0
+            test_epoch_acc = 0
 
-        for x_batch, y_batch in tqdm(test_loader):
-            x_batch, y_batch = x_batch.to(device), y_batch.to(device)
-            y_test_pred = model(x_batch)
-            _, y_pred_tag = torch.max(y_test_pred, dim = 1)
-            y_test_pred = y_test_pred.squeeze()
-            #y_test_pred = torch.unsqueeze(y_test_pred, 0)
+            for x_batch, y_batch in tqdm(test_loader):
+                x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
+                y_test_pred = self(x_batch)
+                _, y_pred_tag = torch.max(y_test_pred, dim = 1)
+                y_test_pred = y_test_pred.squeeze()
+                #y_test_pred = torch.unsqueeze(y_test_pred, 0)
 
-            test_acc = binary_acc(y_test_pred, y_batch)
-            test_loss = criterion(y_test_pred, y_batch)
-            test_epoch_loss += test_loss.item()
-            test_epoch_acc += test_acc.item()
+                test_acc = binary_acc(y_test_pred, y_batch)
+                test_loss = criterion(y_test_pred, y_batch)
+                test_epoch_loss += test_loss.item()
+                test_epoch_acc += test_acc.item()
         print(f'Test Loss: {test_epoch_loss/len(test_loader):.5f} | Test Acc: {test_epoch_acc/len(test_loader):.3f}')
 
         if test_epoch_acc > best_acc:

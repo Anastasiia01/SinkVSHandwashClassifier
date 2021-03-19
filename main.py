@@ -4,9 +4,6 @@ import argparse
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-#from tqdm import tqdm
-from tqdm.notebook import tqdm
-from sklearn.metrics import classification_report, confusion_matrix
 
 from Utils import Utils
 from models.CNN import CNNClassifier
@@ -24,9 +21,11 @@ def main(args):
     #utils.plot_images(testloader, device, 'testing_images')
 
     #--------------define classifier------------------------
-    model = CNNClassifier()
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = CNNClassifier(device)
     model.to(device)
-    print(model)
+    #print(model)
     best_acc = 0 
 
     if args.loadmodel:
@@ -37,7 +36,7 @@ def main(args):
         print('==> Loading Classifier..')
         model.load_state_dict(checkpoint['model'])
 
-    model.train(trainloader)
+    model.trainCNN(trainloader)
     model.test(testloader, best_acc)
 
     
