@@ -9,7 +9,7 @@ class Utils(object):
     def prepare_data(self, dataroot, image_size, batch_size):
         # Create the dataset
         print("Preparing dataset...")
-        train_dataset = dset.ImageFolder(root=dataroot+'/Train',
+        train_dataset = dset.ImageFolder(root=dataroot+'Train',
                                    transform=transforms.Compose([
                                        transforms.Resize(image_size),
                                        transforms.CenterCrop(image_size),
@@ -17,8 +17,10 @@ class Utils(object):
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                    ]))
         print(train_dataset.classes)
+        print(train_dataset)
+        print(train_dataset.class_to_idx)
         # Create the dataloader
-        test_dataset = dset.ImageFolder(root=dataroot+'/Test',
+        test_dataset = dset.ImageFolder(root=dataroot+'Test',
                                    transform=transforms.Compose([
                                        transforms.Resize(image_size),
                                        transforms.CenterCrop(image_size),
@@ -26,6 +28,7 @@ class Utils(object):
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                    ]))
         print(test_dataset.classes)
+        
 
         print("Preparing dataloaders...")
         trainloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
