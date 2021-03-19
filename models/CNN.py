@@ -1,16 +1,22 @@
 import torch
 import torch.nn as nn 
 import torch.nn.functional as F 
+#from tqdm import tqdm
+from tqdm.notebook import tqdm
+import os
 
 class CNNClassifier(nn.Module):
 
-    def __init__(self):
+    def __init__(self, device):
         super(CNNClassifier, self).__init__()
         self.block1 = self.conv_block(c_in=3, c_out=256, dropout=0.1, kernel_size=5, stride=1, padding=2)
         self.block2 = self.conv_block(c_in=256, c_out=128, dropout=0.1, kernel_size=3, stride=1, padding=1)
         self.block3 = self.conv_block(c_in=128, c_out=64, dropout=0.1, kernel_size=3, stride=1, padding=1)
         self.lastcnn = nn.Conv2d(in_channels=64, out_channels=2, kernel_size=56, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.criterion = torch.nn.CrossEntropyLoss()
+        self.optimizer = optim.Adam(model.parameters(), lr=0.008)
 
     def forward(self, x):
         x = self.block1(x)
@@ -29,6 +35,77 @@ class CNNClassifier(nn.Module):
             nn.Dropout2d(p=dropout)
         )
         return seq_block
+
+    def train(self, trainloader):
+        print("Begin training...")
+        self.t_begin = time.time()
+        for e in tqdm(range(1, 21)):
+            train_epoch_loss = 0
+            train_epoch_acc = 0
+            this.train()
+            for X_train_batch, y_train_batch in train_loader:            
+                X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
+                optimizer.zero_grad()
+                y_train_pred = model(X_train_batch).squeeze() # returns a tensor with all the dimensions of input of size 1 removed.
+                train_loss = criterion(y_train_pred, y_train_batch)
+                train_acc = binary_acc(y_train_pred, y_train_batch)
+                train_loss.backward()
+                optimizer.step()
+                train_epoch_loss += train_loss.item()
+                train_epoch_acc += train_acc.item()
+            print(f'Epoch {e+0:02}: | Train Loss: {train_epoch_loss/len(train_loader):.5f} | Train Acc: {train_epoch_acc/len(train_loader):.3f}')
+        self.t_end = time.time()
+        print('Time of training-{}'.format((self.t_end - self.t_begin)))
+        # Save the trained parameters
+        #self.save_model()
+
+    def evaluate(self, test_loader, best_acc=0): 
+        print("Begin testing...")
+        with torch.no_grad():
+        this.eval()
+        test_epoch_loss = 0
+        test_epoch_acc = 0
+
+        for x_batch, y_batch in tqdm(test_loader):
+            x_batch, y_batch = x_batch.to(device), y_batch.to(device)
+            y_test_pred = model(x_batch)
+            _, y_pred_tag = torch.max(y_test_pred, dim = 1)
+            y_test_pred = y_test_pred.squeeze()
+            #y_test_pred = torch.unsqueeze(y_test_pred, 0)
+
+            test_acc = binary_acc(y_test_pred, y_batch)
+            test_loss = criterion(y_test_pred, y_batch)
+            test_epoch_loss += test_loss.item()
+            test_epoch_acc += test_acc.item()
+        print(f'Test Loss: {test_epoch_loss/len(test_loader):.5f} | Test Acc: {test_epoch_acc/len(test_loader):.3f}')
+
+        if test_epoch_acc > best_acc:
+            print('Saving model..')
+            state = {
+                'model': this.state_dict(),
+                'accuracy': acc,
+            }
+            if not os.path.isdir('checkpoint'):
+                os.mkdir('checkpoint')
+            torch.save(state, './checkpoint/ckpt.pth')
+
+    
+    def binary_acc(self, y_pred, y_test):
+        y_pred_tag = torch.log_softmax(y_pred, dim = 1)
+        _, y_pred_tags = torch.max(y_pred_tag, dim = 1)
+        correct_results_sum = (y_pred_tags == y_test).sum().float()
+        acc = correct_results_sum/y_test.shape[0]
+        acc = torch.round(acc * 100)
+        return acc
+
+
+    """def load_model(self, D_model_filename = './discriminator.pkl', G_model_filename = './generator.pkl'):
+        D_model_path = os.path.join(os.getcwd(), D_model_filename)
+        G_model_path = os.path.join(os.getcwd(), G_model_filename)
+        self.D.load_state_dict(torch.load(D_model_path))
+        self.G.load_state_dict(torch.load(G_model_path))
+        print('Generator model loaded from {}.'.format(G_model_path))
+        print('Discriminator model loaded from {}-'.format(D_model_path))"""
 
 
 class CNN(nn.Module): 
