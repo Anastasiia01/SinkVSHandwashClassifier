@@ -1,4 +1,5 @@
 import sys
+import os
 import torch
 import argparse
 import torch.nn as nn
@@ -27,17 +28,17 @@ def main(args):
     model.to(device)
     #print(model)
     best_acc = 0 
+    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('./checkpoint/ckpt.pth')
+    best_acc = checkpoint['accuracy']
 
     if args.loadmodel:
         # Load model.
-        assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-        checkpoint = torch.load('./checkpoint/ckpt.pth')
-        best_acc = checkpoint['accuracy']
         print('==> Loading Classifier..')
         model.load_state_dict(checkpoint['model'])
 
     model.trainCNN(trainloader)
-    model.test(testloader, best_acc)
+    model.evaluate(testloader, best_acc)
 
     
 

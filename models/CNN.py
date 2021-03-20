@@ -85,7 +85,7 @@ class CNNClassifier(nn.Module):
             print('Saving model..')
             state = {
                 'model': self.state_dict(),
-                'accuracy': acc,
+                'accuracy': test_epoch_acc,
             }
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')

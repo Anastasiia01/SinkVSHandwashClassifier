@@ -16,9 +16,9 @@ class Utils(object):
                                        transforms.ToTensor(),
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                    ]))
-        print(train_dataset.classes)
-        print(train_dataset)
-        print(train_dataset.class_to_idx)
+        #print(train_dataset.classes)
+        #print(train_dataset)#397 images
+        #print(train_dataset.class_to_idx)
         # Create the dataloader
         test_dataset = dset.ImageFolder(root=dataroot+'Test',
                                    transform=transforms.Compose([
@@ -27,7 +27,7 @@ class Utils(object):
                                        transforms.ToTensor(),
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                    ]))
-        print(test_dataset.classes)
+        #print(test_dataset)#44 images
         
 
         print("Preparing dataloaders...")
