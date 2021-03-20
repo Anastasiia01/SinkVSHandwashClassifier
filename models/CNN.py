@@ -47,12 +47,12 @@ class CNNClassifier(nn.Module):
             self.train()
             for X_train_batch, y_train_batch in train_loader:            
                 X_train_batch, y_train_batch = X_train_batch.to(self.device), y_train_batch.to(self.device)
-                optimizer.zero_grad()
+                self.optimizer.zero_grad()
                 y_train_pred = self(X_train_batch).squeeze() # returns a tensor with all the dimensions of input of size 1 removed.
-                train_loss = criterion(y_train_pred, y_train_batch)
-                train_acc = binary_acc(y_train_pred, y_train_batch)
+                train_loss = self.criterion(y_train_pred, y_train_batch)
+                train_acc = self.binary_acc(y_train_pred, y_train_batch)
                 train_loss.backward()
-                optimizer.step()
+                self.optimizer.step()
                 train_epoch_loss += train_loss.item()
                 train_epoch_acc += train_acc.item()
             print(f'Epoch {e+0:02}: | Train Loss: {train_epoch_loss/len(train_loader):.5f} | Train Acc: {train_epoch_acc/len(train_loader):.3f}')
@@ -75,8 +75,8 @@ class CNNClassifier(nn.Module):
                 y_test_pred = y_test_pred.squeeze()
                 #y_test_pred = torch.unsqueeze(y_test_pred, 0)
 
-                test_acc = binary_acc(y_test_pred, y_batch)
-                test_loss = criterion(y_test_pred, y_batch)
+                test_acc = self.binary_acc(y_test_pred, y_batch)
+                test_loss = self.criterion(y_test_pred, y_batch)
                 test_epoch_loss += test_loss.item()
                 test_epoch_acc += test_acc.item()
         print(f'Test Loss: {test_epoch_loss/len(test_loader):.5f} | Test Acc: {test_epoch_acc/len(test_loader):.3f}')
@@ -84,7 +84,7 @@ class CNNClassifier(nn.Module):
         if test_epoch_acc > best_acc:
             print('Saving model..')
             state = {
-                'model': this.state_dict(),
+                'model': self.state_dict(),
                 'accuracy': acc,
             }
             if not os.path.isdir('checkpoint'):
