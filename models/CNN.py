@@ -6,6 +6,7 @@ import torch.optim as optim
 from tqdm.notebook import tqdm
 import os
 import time
+from PIL import Image
 
 class CNNClassifier(nn.Module):
 
@@ -90,6 +91,24 @@ class CNNClassifier(nn.Module):
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
             torch.save(state, './checkpoint/ckpt.pth')
+
+    def predict(self, filename):
+        image = Image.open(fname, mode = 'r') #reading an image.
+        #image = np.array(image) #the 2-d array of integer pixel values    
+        #image = image/255.0  #toTensor transform will bring from [0,255] tp [0, 1]
+        transform=transforms.Compose([
+                                       transforms.Resize(image_size),
+                                       transforms.CenterCrop(image_size),
+                                       transforms.ToTensor(),
+                                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                   ])
+        input_image = transform.forward(image)
+        prediction = self(input_image)
+
+
+
+
+
 
     
     def binary_acc(self, y_pred, y_test):
