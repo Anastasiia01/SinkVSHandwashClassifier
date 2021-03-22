@@ -106,10 +106,12 @@ class CNNClassifier(nn.Module):
         input_image = preproc(image)
         with torch.no_grad():
             model.eval()
-            prediction = self(input_image)
-            print("prediction: ", prediction)
-            _, y_pred_tag = torch.max(prediction, dim = 1)
-
+            y_pred = self(input_image)            
+            print("pure prediction: ", y_pred)
+            y_pred_tag = torch.log_softmax(y_pred, dim = 1)
+            print("after softmax: ", y_pred_tag)
+            _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
+            print("final output: ", y_pred_tag)
         return y_pred_tag
 
 
