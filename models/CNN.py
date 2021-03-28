@@ -43,7 +43,7 @@ class CNNClassifier(nn.Module):
     def trainCNN(self, train_loader):
         print("Begin training...")
         self.t_begin = time.time()
-        for e in tqdm(range(1, 21)):
+        for e in tqdm(range(1, 15)):
             train_epoch_loss = 0
             train_epoch_acc = 0
             self.train()
@@ -51,6 +51,8 @@ class CNNClassifier(nn.Module):
                 X_train_batch, y_train_batch = X_train_batch.to(self.device), y_train_batch.to(self.device)
                 self.optimizer.zero_grad()
                 y_train_pred = self(X_train_batch).squeeze() # returns a tensor with all the dimensions of input of size 1 removed.
+                #print("real: ", y_train_batch)
+                #print("prediction: ", y_train_pred )
                 train_loss = self.criterion(y_train_pred, y_train_batch)
                 train_acc = self.binary_acc(y_train_pred, y_train_batch)
                 train_loss.backward()
@@ -81,17 +83,18 @@ class CNNClassifier(nn.Module):
                 test_loss = self.criterion(y_test_pred, y_batch)
                 test_epoch_loss += test_loss.item()
                 test_epoch_acc += test_acc.item()
-        print(f'Test Loss: {test_epoch_loss/len(test_loader):.5f} | Test Acc: {test_epoch_acc/len(test_loader):.3f}')
-
+        test_epoch_acc/=len(test_loader)
+        print(f'Test Loss: {test_epoch_loss/len(test_loader):.5f} | Test Acc: {test_epoch_acc:.3f}')
         if test_epoch_acc > best_acc:
             print('Saving model..')
             state = {
                 'model': self.state_dict(),
                 'accuracy': test_epoch_acc,
             }
+            print("with accuracy:", state['accuracy'])
             if not os.path.isdir('checkpoint'):
                 os.mkdir('checkpoint')
-            torch.save(state, './checkpoint/ckpt.pth')
+            torch.save(state, './checkpoint/model.pth')
 
 
     def predict(self, filename, image_size):

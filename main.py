@@ -10,7 +10,7 @@ from Utils import Utils
 from models.CNN import CNNClassifier
 
 def main(args):
-    dataroot = "/content/drive/MyDrive/dataset/"
+    dataroot = "/content/drive/MyDrive/our_dataset/"
     #dataroot = "C:/Users/anast/Documents/_Spring_2021/Senior_Project/dataset/"
     
     #--------------prepare data------------------------
@@ -27,17 +27,18 @@ def main(args):
     model = CNNClassifier(device)
     model.to(device)
     #print(model)
-    best_acc = 0 
+    best_acc = 0.0
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt.pth')
+    checkpoint = torch.load('./checkpoint/model.pth')
     best_acc = checkpoint['accuracy']
+    print("Best current accuracy:", best_acc)
 
     if args.loadmodel:
         # Load model.
         print('==> Loading Classifier..')
         model.load_state_dict(checkpoint['model'])
 
-    #model.trainCNN(trainloader)
+    model.trainCNN(trainloader)
     model.evaluate(testloader, best_acc)
     path_to_test_img = '/content/drive/MyDrive/video1-img43.jpg'
     y_label = model.predict(path_to_test_img, image_size)
