@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn 
 import torch.nn.functional as F 
 import torch.optim as optim
+import torchvision.transforms as transforms
 #from tqdm import tqdm
 from tqdm.notebook import tqdm
 import os
@@ -93,8 +94,8 @@ class CNNClassifier(nn.Module):
             torch.save(state, './checkpoint/ckpt.pth')
 
 
-    def predict(self, filename):
-        image = Image.open(fname, mode = 'r') #reading an image.
+    def predict(self, filename, image_size):
+        image = Image.open(filename, mode = 'r') #reading an image.
         #image = np.array(image) #the 2-d array of integer pixel values    
         #image = image/255.0  #toTensor transform will bring from [0,255] tp [0, 1]
         preproc=transforms.Compose([
@@ -104,9 +105,12 @@ class CNNClassifier(nn.Module):
                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                    ])
         input_image = preproc(image)
+        input_image = input_image.view(1, input_image.size(0), input_image.size(1), input_image.size(2))
+        input_image = input_image.to(self.device)
+        print(input_image.size())
         with torch.no_grad():
-            model.eval()
-            y_pred = self(input_image)            
+            self.eval()
+            y_pred = self(input_image)          
             print("pure prediction: ", y_pred)
             y_pred_tag = torch.log_softmax(y_pred, dim = 1)
             print("after softmax: ", y_pred_tag)

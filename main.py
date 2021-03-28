@@ -38,11 +38,11 @@ def main(args):
         model.load_state_dict(checkpoint['model'])
 
     #model.trainCNN(trainloader)
-    #model.evaluate(testloader, best_acc)
-    path_to_test_img = '/content/drive/MyDrive/dataset/hand_img'
-    y_label = model.predict(path_to_test_img)
+    model.evaluate(testloader, best_acc)
+    path_to_test_img = '/content/drive/MyDrive/video1-img43.jpg'
+    y_label = model.predict(path_to_test_img, image_size)
     results = {0:'handwash', 1:'sink'}
-    print("Result of recognition is ", results[y_label])
+    print("Result of recognition is ", results[y_label.item()])
 
 
     
