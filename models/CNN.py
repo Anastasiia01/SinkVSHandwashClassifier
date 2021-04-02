@@ -183,6 +183,67 @@ class CNNClassifier(nn.Module):
         save_image(tensor_image, file_path)
 
 
+    @torch.no_grad()
+    def predict_video(self, path, save_dir, every=None):
+      self.eval()
+      idx = 0
+      preproc=transforms.Compose([
+                                       transforms.ToTensor(),
+                                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                   ])
+
+      for image in self.image_generator(path, every):
+        if image is None:
+          break
+        
+        input_image = preproc(image)
+        input_image = input_image.view(1, input_image.size(0), input_image.size(1), input_image.size(2))
+        input_image = input_image.to(self.device)
+
+        y_pred = self(input_image)
+        y_pred_tag = torch.log_softmax(y_pred, dim = 1)
+        _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
+        y_pred_tag = y_pred_tag.squeeze()
+        tag = y_pred_tag.item()
+        
+        # Save tensor as img
+
+        if not os.path.isdir(save_dir):
+          os.mkdir(save_dir)
+        img_path = os.path.join(save_dir, f'{idx}-{tag}.png')
+        save_image(input_image[0]*0.5 + 0.5, img_path)
+        idx += 1
+
+
+    """
+    Yields all frames from a video.
+
+    Parameters:
+        - path: Path to load the video from.
+        - resize: tuple defining dimensions of new image.
+        - every: Every how many frame to yield a frame. E.g.
+                 every = 30, means yield a frame every 30 frames.
+                 None for all frames.
+    """
+    def image_generator(self, path, resize=(224, 224), every=None):
+        cap = cv2.VideoCapture(path)
+        count = 0
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                frame = cv2.resize(frame, resize)
+                frame = frame[:, :, [2, 1, 0]]
+                image = Image.fromarray(frame)
+                if every is None or count % every == 0:
+                    yield image
+                    
+            count += 1
+        finally:
+            cap.release()
+
+        yield None
 
     
     def binary_acc(self, y_pred, y_test):
