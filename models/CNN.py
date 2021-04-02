@@ -120,11 +120,67 @@ class CNNClassifier(nn.Module):
             _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
             print("final output: ", y_pred_tag)
         return y_pred_tag
+    
 
+    """
+    Predicts the label of test data. It stores misclassified
+    images for later inspection.
 
+    Parameters:
+        - test_loader: DataLoader to be predicted.
+        - save_dir: The base directory to save images
+    """
+    @torch.no_grad()
+    def predict_batched(self, test_loader, save_dir='.'):
+        correct_num = 0
+        i_ter = 0
+        tot = len(test_loader.dataset)
+        self.eval()
 
+        for x_batch, y_batch in tqdm(test_loader):
 
+            x_batch, y_batch = x_batch.to(self.device), y_batch.to(self.device)
+            y_pred = self(x_batch)
+            y_pred_tag = torch.log_softmax(y_pred, dim = 1)
+            _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
+            y_pred_tag = y_pred_tag.squeeze() # Flatten big boy
 
+            correct_num += sum(y_pred_tag == y_batch)
+
+            # Save each image in the batch if misclassified
+            for idx, (expected, actual) in enumerate(zip(y_batch, y_pred_tag)):
+
+                if expected == actual:
+                    continue
+
+                name = f'{i_ter}.png'
+                i_ter += 1
+                tensor_image = x_batch[idx]*0.5 + 0.5
+
+                self.dispatch_to_folder(save_dir, expected, actual, tensor_image, name)
+
+        print(f'Total images: {tot}\nCorrectly classfied: {correct_num}')
+
+    def dispatch_to_folder(self, save_dir, expected, actual, tensor_image, name):
+      misclassified_as_sink = os.path.join(save_dir, 'as_sink')
+
+      if not os.path.isdir(misclassified_as_sink):
+          os.mkdir(misclassified_as_sink)
+
+      misclassified_as_handwash = os.path.join(save_dir, 'as_handwash')
+
+      if not os.path.isdir(misclassified_as_handwash):
+          os.mkdir(misclassified_as_handwash)
+        
+      if expected == 0 and actual == 1:
+        # Handwashing misclassified as sink
+        file_path = os.path.join(misclassified_as_sink, name)
+        save_image(tensor_image, file_path)
+
+      if expected == 1 and actual == 0:
+        # Sink misclassified as handwashing
+        file_path = os.path.join(misclassified_as_handwash, name)
+        save_image(tensor_image, file_path)
 
 
 
