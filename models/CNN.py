@@ -162,57 +162,57 @@ class CNNClassifier(nn.Module):
         print(f'Total images: {tot}\nCorrectly classfied: {correct_num}')
 
     def dispatch_to_folder(self, save_dir, expected, actual, tensor_image, name):
-      misclassified_as_sink = os.path.join(save_dir, 'as_sink')
+        misclassified_as_sink = os.path.join(save_dir, 'as_sink')
 
-      if not os.path.isdir(misclassified_as_sink):
-          os.mkdir(misclassified_as_sink)
+        if not os.path.isdir(misclassified_as_sink):
+            os.mkdir(misclassified_as_sink)
 
-      misclassified_as_handwash = os.path.join(save_dir, 'as_handwash')
+        misclassified_as_handwash = os.path.join(save_dir, 'as_handwash')
 
-      if not os.path.isdir(misclassified_as_handwash):
-          os.mkdir(misclassified_as_handwash)
-        
-      if expected == 0 and actual == 1:
-        # Handwashing misclassified as sink
-        file_path = os.path.join(misclassified_as_sink, name)
-        save_image(tensor_image, file_path)
+        if not os.path.isdir(misclassified_as_handwash):
+            os.mkdir(misclassified_as_handwash)
+            
+        if expected == 0 and actual == 1:
+            # Handwashing misclassified as sink
+            file_path = os.path.join(misclassified_as_sink, name)
+            save_image(tensor_image, file_path)
 
-      if expected == 1 and actual == 0:
-        # Sink misclassified as handwashing
-        file_path = os.path.join(misclassified_as_handwash, name)
-        save_image(tensor_image, file_path)
+        if expected == 1 and actual == 0:
+            # Sink misclassified as handwashing
+            file_path = os.path.join(misclassified_as_handwash, name)
+            save_image(tensor_image, file_path)
 
 
     @torch.no_grad()
     def predict_video(self, path, save_dir, every=None):
-      self.eval()
-      idx = 0
-      preproc=transforms.Compose([
-                                       transforms.ToTensor(),
-                                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                                   ])
+        self.eval()
+        idx = 0
+        preproc=transforms.Compose([
+                                        transforms.ToTensor(),
+                                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                    ])
 
-      for image in self.image_generator(path, every):
-        if image is None:
-          break
-        
-        input_image = preproc(image)
-        input_image = input_image.view(1, input_image.size(0), input_image.size(1), input_image.size(2))
-        input_image = input_image.to(self.device)
+        for image in self.image_generator(path, every):
+            if image is None:
+                break
+            
+            input_image = preproc(image)
+            input_image = input_image.view(1, input_image.size(0), input_image.size(1), input_image.size(2))
+            input_image = input_image.to(self.device)
 
-        y_pred = self(input_image)
-        y_pred_tag = torch.log_softmax(y_pred, dim = 1)
-        _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
-        y_pred_tag = y_pred_tag.squeeze()
-        tag = y_pred_tag.item()
-        
-        # Save tensor as img
+            y_pred = self(input_image)
+            y_pred_tag = torch.log_softmax(y_pred, dim = 1)
+            _, y_pred_tag = torch.max(y_pred_tag, dim = 1)
+            y_pred_tag = y_pred_tag.squeeze()
+            tag = y_pred_tag.item()
+            
+            # Save tensor as img
 
-        if not os.path.isdir(save_dir):
-          os.mkdir(save_dir)
-        img_path = os.path.join(save_dir, f'{idx}-{tag}.png')
-        save_image(input_image[0]*0.5 + 0.5, img_path)
-        idx += 1
+            if not os.path.isdir(save_dir):
+                os.mkdir(save_dir)
+            img_path = os.path.join(save_dir, f'{idx}-{tag}.png')
+            save_image(input_image[0]*0.5 + 0.5, img_path)
+            idx += 1
 
 
     """
@@ -238,7 +238,7 @@ class CNNClassifier(nn.Module):
                 image = Image.fromarray(frame)
                 if every is None or count % every == 0:
                     yield image
-                    
+
             count += 1
         finally:
             cap.release()
